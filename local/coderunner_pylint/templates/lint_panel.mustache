@@ -1,0 +1,106 @@
+{{!
+    @template local_coderunner_pylint/lint_panel
+
+    Renders the pylint results panel that appears below CodeRunner feedback.
+
+    Classes required for JS: none (server-rendered, positioned by lint_injector.js)
+
+    Data attributes:
+    - data-region="pylint-results"
+
+    Context variables required:
+    - panelid (string): Unique ID for the panel element
+    - has_error (bool): Whether pylint execution failed
+    - error_message (string): Error message if has_error is true
+    - has_messages (bool): Whether there are any lint messages
+    - severity_groups (array): Groups of messages by severity
+    - score (string): Pylint score (formatted)
+    - scoreclass (string): Bootstrap badge class for score
+    - total_issues (int): Total number of issues found
+    - no_issues_message (string): Message when no issues found
+
+    Example context (json):
+    {
+        "panelid": "pylint-panel-1",
+        "has_error": false,
+        "has_messages": true,
+        "severity_groups": [
+            {
+                "type": "error",
+                "label": "Error",
+                "cssclass": "pylint-error",
+                "count": 1,
+                "messages": [
+                    {
+                        "line": 5,
+                        "messageid": "E0602",
+                        "symbol": "undefined-variable",
+                        "message": "Undefined variable 'x'",
+                        "severitylabel": "Error",
+                        "severityclass": "pylint-error"
+                    }
+                ]
+            }
+        ],
+        "score": "7.5",
+        "scoreclass": "badge-warning",
+        "total_issues": 1
+    }
+}}
+<div id="{{panelid}}" class="coderunner-pylint-panel" data-region="pylint-results" style="display:none;">
+    <details open>
+        <summary class="pylint-header">
+            <span class="pylint-title">
+                {{#str}}lintresults, local_coderunner_pylint{{/str}}
+            </span>
+            <span class="badge {{scoreclass}} pylint-score">
+                {{#str}}score, local_coderunner_pylint{{/str}}: {{score}}/10
+            </span>
+            {{#total_issues}}
+                <span class="badge badge-secondary pylint-count">
+                    {{total_issues}} {{#total_issues}}issue{{/total_issues}}{{^total_issues}}issues{{/total_issues}}
+                </span>
+            {{/total_issues}}
+        </summary>
+
+        <div class="pylint-body">
+            {{#has_error}}
+                <div class="alert alert-warning pylint-error-msg">
+                    {{{error_message}}}
+                </div>
+            {{/has_error}}
+
+            {{^has_error}}
+                {{#has_messages}}
+                    {{#severity_groups}}
+                        <div class="pylint-severity-group {{cssclass}}">
+                            <h6 class="pylint-group-header {{cssclass}}-header">
+                                {{label}} ({{count}})
+                            </h6>
+                            <table class="table table-sm table-striped pylint-messages">
+                                <thead class="sr-only">
+                                    <tr>
+                                        <th>{{#str}}line, local_coderunner_pylint{{/str}}</th>
+                                        <th>{{#str}}code, local_coderunner_pylint{{/str}}</th>
+                                        <th>{{#str}}messagecol, local_coderunner_pylint{{/str}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#messages}}
+                                        {{> local_coderunner_pylint/lint_message }}
+                                    {{/messages}}
+                                </tbody>
+                            </table>
+                        </div>
+                    {{/severity_groups}}
+                {{/has_messages}}
+
+                {{^has_messages}}
+                    <div class="pylint-clean">
+                        {{no_issues_message}}
+                    </div>
+                {{/has_messages}}
+            {{/has_error}}
+        </div>
+    </details>
+</div>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/coderunner_pylint/db" VERSION="20260406" COMMENT="XMLDB file for local_coderunner_pylint"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_crpylint_qconfig" COMMENT="Per-question pylint configuration overrides">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to question.id"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" COMMENT="Whether linting is enabled for this question"/>
+        <FIELD NAME="disabled_checks" TYPE="text" NOTNULL="false" COMMENT="Comma-separated pylint checks to disable for this question"/>
+        <FIELD NAME="min_severity" TYPE="char" LENGTH="20" NOTNULL="false" COMMENT="Minimum severity override: convention, refactor, warning, error"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="questionid_uq" UNIQUE="true" FIELDS="questionid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

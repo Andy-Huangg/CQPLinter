@@ -1,0 +1,33 @@
+{{!
+    @template local_coderunner_pylint/lint_message
+
+    Renders a single pylint message row within a severity group table.
+
+    Context variables required:
+    - line (int): Line number
+    - messageid (string): Pylint message code (e.g. "E0602")
+    - symbol (string): Pylint check name (e.g. "undefined-variable")
+    - message (string): Human-readable message
+    - severityclass (string): CSS class for severity colouring
+
+    Example context (json):
+    {
+        "line": 5,
+        "messageid": "E0602",
+        "symbol": "undefined-variable",
+        "message": "Undefined variable 'x'",
+        "severityclass": "pylint-error"
+    }
+}}
+<tr class="pylint-message-row {{severityclass}}">
+    <td class="pylint-line-col">
+        <code>{{line}}</code>
+    </td>
+    <td class="pylint-code-col">
+        <code title="{{symbol}}">{{messageid}}</code>
+    </td>
+    <td class="pylint-msg-col">
+        {{message}}
+        <span class="pylint-symbol text-muted">({{symbol}})</span>
+    </td>
+</tr>
