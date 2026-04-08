@@ -1,7 +1,10 @@
 {{!
     @template local_coderunner_pylint/lint_panel
 
-    Renders the pylint results panel that appears below CodeRunner feedback.
+    Renders the CQP-based code quality results panel below CodeRunner feedback.
+
+    Messages are grouped by CQP principle rather than pylint severity,
+    showing the principle name, description, and guideline alongside violations.
 
     Classes required for JS: none (server-rendered, positioned by lint_injector.js)
 
@@ -13,7 +16,7 @@
     - has_error (bool): Whether pylint execution failed
     - error_message (string): Error message if has_error is true
     - has_messages (bool): Whether there are any lint messages
-    - severity_groups (array): Groups of messages by severity
+    - cqp_groups (array): Groups of messages by CQP principle
     - score (string): Pylint score (formatted)
     - scoreclass (string): Bootstrap badge class for score
     - total_issues (int): Total number of issues found
@@ -24,20 +27,23 @@
         "panelid": "pylint-panel-1",
         "has_error": false,
         "has_messages": true,
-        "severity_groups": [
+        "cqp_groups": [
             {
-                "type": "error",
-                "label": "Error",
-                "cssclass": "pylint-error",
+                "cqp_number": 2,
+                "cqp_name": "Explanatory Language",
+                "cqp_short": "The rationale, intent and meaning of code is explicit.",
+                "cqp_guideline": "Names should be descriptive and comments should clarify intent.",
                 "count": 1,
                 "messages": [
                     {
                         "line": 5,
-                        "messageid": "E0602",
-                        "symbol": "undefined-variable",
-                        "message": "Undefined variable 'x'",
-                        "severitylabel": "Error",
-                        "severityclass": "pylint-error"
+                        "messageid": "C0114",
+                        "symbol": "missing-module-docstring",
+                        "message": "Missing module docstring",
+                        "severityclass": "pylint-convention",
+                        "cqp_number": 2,
+                        "cqp_name": "Explanatory Language",
+                        "cqp_guideline": "Names should be descriptive."
                     }
                 ]
             }
@@ -58,7 +64,7 @@
             </span>
             {{#total_issues}}
                 <span class="badge badge-secondary pylint-count">
-                    {{total_issues}} {{#total_issues}}issue{{/total_issues}}{{^total_issues}}issues{{/total_issues}}
+                    {{total_issues}} issue{{#total_issues}}{{/total_issues}}
                 </span>
             {{/total_issues}}
         </summary>
@@ -72,16 +78,19 @@
 
             {{^has_error}}
                 {{#has_messages}}
-                    {{#severity_groups}}
-                        <div class="pylint-severity-group {{cssclass}}">
-                            <h6 class="pylint-group-header {{cssclass}}-header">
-                                {{label}} ({{count}})
-                            </h6>
+                    {{#cqp_groups}}
+                        <div class="cqp-group">
+                            <div class="cqp-group-header cqp-principle-{{cqp_number}}-header">
+                                <strong>CQP {{cqp_number}}: {{cqp_name}}</strong>
+                                <span class="cqp-group-count">({{count}})</span>
+                            </div>
+                            <div class="cqp-group-guideline">
+                                {{cqp_guideline}}
+                            </div>
                             <table class="table table-sm table-striped pylint-messages">
                                 <thead class="sr-only">
                                     <tr>
                                         <th>{{#str}}line, local_coderunner_pylint{{/str}}</th>
-                                        <th>{{#str}}code, local_coderunner_pylint{{/str}}</th>
                                         <th>{{#str}}messagecol, local_coderunner_pylint{{/str}}</th>
                                     </tr>
                                 </thead>
@@ -92,7 +101,7 @@
                                 </tbody>
                             </table>
                         </div>
-                    {{/severity_groups}}
+                    {{/cqp_groups}}
                 {{/has_messages}}
 
                 {{^has_messages}}

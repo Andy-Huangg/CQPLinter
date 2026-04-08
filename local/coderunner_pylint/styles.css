@@ -1,5 +1,6 @@
-/* CodeRunner Pylint - Lint Panel Styles */
+/* CodeRunner Pylint — CQP Lint Panel Styles */
 
+/* ===== Main panel container ===== */
 .coderunner-pylint-panel {
     margin-top: 0.75rem;
     border: 1px solid #dee2e6;
@@ -44,41 +45,45 @@ details[open] > .pylint-header {
     padding: 0.5rem 0.75rem;
 }
 
-/* Severity group headers */
-.pylint-group-header {
-    font-size: 0.85em;
-    font-weight: 600;
-    margin: 0.5rem 0 0.25rem 0;
-    padding: 0.25rem 0.5rem;
+/* ===== CQP principle groups ===== */
+.cqp-group {
+    margin-bottom: 0.75rem;
+}
+
+.cqp-group-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
     border-radius: 0.25rem;
+    font-size: 0.9em;
 }
 
-.pylint-error-header {
-    background-color: #f8d7da;
-    color: #721c24;
+.cqp-group-count {
+    font-weight: normal;
+    font-size: 0.85em;
+    opacity: 0.8;
 }
 
-.pylint-warning-header {
-    background-color: #fff3cd;
-    color: #856404;
+.cqp-group-guideline {
+    font-size: 0.82em;
+    font-style: italic;
+    color: #555;
+    padding: 0.2rem 0.6rem 0.4rem;
+    line-height: 1.4;
 }
 
-.pylint-refactor-header {
-    background-color: #e2e3e5;
-    color: #383d41;
-}
+/* Principle-specific header colours */
+.cqp-principle-1-header { background-color: #e8f4fd; color: #0c5460; }
+.cqp-principle-2-header { background-color: #fff3cd; color: #856404; }
+.cqp-principle-3-header { background-color: #e2e3e5; color: #383d41; }
+.cqp-principle-4-header { background-color: #f8d7da; color: #721c24; }
+.cqp-principle-5-header { background-color: #d4edda; color: #155724; }
+.cqp-principle-6-header { background-color: #e7e3f1; color: #4a3d6e; }
+.cqp-principle-7-header { background-color: #d1ecf1; color: #0c5460; }
+.cqp-principle-8-header { background-color: #fde8d0; color: #7a4a0e; }
 
-.pylint-convention-header {
-    background-color: #d1ecf1;
-    color: #0c5460;
-}
-
-.pylint-info-header {
-    background-color: #e2e3e5;
-    color: #383d41;
-}
-
-/* Message table */
+/* ===== Message table ===== */
 .pylint-messages {
     margin-bottom: 0.25rem;
 }
@@ -98,11 +103,6 @@ details[open] > .pylint-header {
 .pylint-line-col {
     width: 3.5rem;
     text-align: right;
-    white-space: nowrap;
-}
-
-.pylint-code-col {
-    width: 4.5rem;
     white-space: nowrap;
 }
 
@@ -147,4 +147,178 @@ details[open] > .pylint-header {
 .pylint-error-msg {
     margin: 0.25rem 0;
     font-size: 0.9em;
+}
+
+/* ===== CQP Lint Button ===== */
+.cqp-lint-wrapper {
+    margin: 0.5rem 0;
+}
+
+.cqp-lint-btn {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.cqp-lint-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+/* ===== Ace editor inline highlights ===== */
+.cqp-highlight-error {
+    position: absolute;
+    background-color: rgba(220, 53, 69, 0.15);
+    border-left: 3px solid #dc3545;
+}
+
+.cqp-highlight-warning {
+    position: absolute;
+    background-color: rgba(255, 193, 7, 0.15);
+    border-left: 3px solid #ffc107;
+}
+
+.cqp-highlight-refactor {
+    position: absolute;
+    background-color: rgba(108, 117, 125, 0.1);
+    border-left: 3px solid #6c757d;
+}
+
+.cqp-highlight-convention {
+    position: absolute;
+    background-color: rgba(23, 162, 184, 0.1);
+    border-left: 3px solid #17a2b8;
+}
+
+.cqp-highlight-info {
+    position: absolute;
+    background-color: rgba(108, 117, 125, 0.08);
+    border-left: 3px solid #adb5bd;
+}
+
+/* ===== JS-generated results panel ===== */
+.cqp-results-panel {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background-color: #f8f9fa;
+    font-size: 0.9em;
+    overflow: hidden;
+}
+
+.cqp-results-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.cqp-results-title {
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.cqp-score {
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+}
+
+.cqp-score-good { background-color: #d4edda; color: #155724; }
+.cqp-score-ok   { background-color: #fff3cd; color: #856404; }
+.cqp-score-bad  { background-color: #f8d7da; color: #721c24; }
+
+.cqp-issue-count {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.cqp-clean {
+    padding: 1rem;
+    text-align: center;
+    color: #28a745;
+    font-weight: 500;
+}
+
+/* Principle summary badges */
+.cqp-principle-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.cqp-principle-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8em;
+    font-weight: 500;
+    cursor: default;
+}
+
+.cqp-badge-count {
+    font-weight: normal;
+    opacity: 0.8;
+}
+
+.cqp-principle-1 { background-color: #e8f4fd; color: #0c5460; }
+.cqp-principle-2 { background-color: #fff3cd; color: #856404; }
+.cqp-principle-3 { background-color: #e2e3e5; color: #383d41; }
+.cqp-principle-4 { background-color: #f8d7da; color: #721c24; }
+.cqp-principle-5 { background-color: #d4edda; color: #155724; }
+.cqp-principle-6 { background-color: #e7e3f1; color: #4a3d6e; }
+.cqp-principle-7 { background-color: #d1ecf1; color: #0c5460; }
+.cqp-principle-8 { background-color: #fde8d0; color: #7a4a0e; }
+
+/* JS results - message groups */
+.cqp-results-panel .cqp-group {
+    padding: 0 0.75rem;
+}
+
+.cqp-results-panel .cqp-group:last-child {
+    margin-bottom: 0.5rem;
+}
+
+.cqp-results-panel .cqp-group-header {
+    margin-top: 0.5rem;
+}
+
+.cqp-results-panel .cqp-group-guideline {
+    font-size: 0.82em;
+    font-style: italic;
+    color: #555;
+    padding: 0.2rem 0.6rem 0.3rem;
+    line-height: 1.4;
+}
+
+.cqp-messages-table {
+    margin-bottom: 0.25rem;
+}
+
+.cqp-line-col {
+    width: 3.5rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cqp-msg-col {
+    word-break: break-word;
+}
+
+.cqp-symbol {
+    font-size: 0.8em;
+}
+
+/* JS results - severity row colours */
+.cqp-row-error td   { border-left: 3px solid #dc3545; }
+.cqp-row-warning td  { border-left: 3px solid #ffc107; }
+.cqp-row-refactor td { border-left: 3px solid #6c757d; }
+.cqp-row-convention td { border-left: 3px solid #17a2b8; }
+.cqp-row-info td     { border-left: 3px solid #adb5bd; }
+
+.cqp-results-container {
+    margin-top: 0.25rem;
 }

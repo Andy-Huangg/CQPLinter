@@ -1,7 +1,7 @@
 {{!
     @template local_coderunner_pylint/lint_message
 
-    Renders a single pylint message row within a severity group table.
+    Renders a single lint message row with CQP principle annotation.
 
     Context variables required:
     - line (int): Line number
@@ -9,6 +9,8 @@
     - symbol (string): Pylint check name (e.g. "undefined-variable")
     - message (string): Human-readable message
     - severityclass (string): CSS class for severity colouring
+    - cqp_number (int): CQP principle number
+    - cqp_name (string): CQP principle name
 
     Example context (json):
     {
@@ -16,15 +18,14 @@
         "messageid": "E0602",
         "symbol": "undefined-variable",
         "message": "Undefined variable 'x'",
-        "severityclass": "pylint-error"
+        "severityclass": "pylint-error",
+        "cqp_number": 5,
+        "cqp_name": "Simple Constructs"
     }
 }}
 <tr class="pylint-message-row {{severityclass}}">
     <td class="pylint-line-col">
         <code>{{line}}</code>
-    </td>
-    <td class="pylint-code-col">
-        <code title="{{symbol}}">{{messageid}}</code>
     </td>
     <td class="pylint-msg-col">
         {{message}}

@@ -71,6 +71,19 @@ $string['messagecol'] = 'Message';
 $string['noissues'] = 'No issues found. Well done!';
 $string['linterror'] = 'Code analysis could not be completed.';
 $string['linttimeout'] = 'Code analysis timed out.';
+$string['checkcqp'] = 'Check Code Quality';
+$string['checkcqp_tooltip'] = 'Analyse your code against the Code Quality Principles';
+$string['analysing'] = 'Analysing...';
+
+// CQP principle names.
+$string['cqp_1'] = 'Clear Presentation';
+$string['cqp_2'] = 'Explanatory Language';
+$string['cqp_3'] = 'Consistent Code';
+$string['cqp_4'] = 'Used Content';
+$string['cqp_5'] = 'Simple Constructs';
+$string['cqp_6'] = 'Minimal Duplication';
+$string['cqp_7'] = 'Modular Structure';
+$string['cqp_8'] = 'Problem Alignment';
 
 // Error messages.
 $string['codetoolargeforanalysis'] = 'The submitted code is too large to analyse.';

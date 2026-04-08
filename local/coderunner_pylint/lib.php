@@ -17,8 +17,8 @@
 /**
  * Library functions for local_coderunner_pylint.
  *
- * Contains the before_footer callback that injects server-rendered lint panels
- * into quiz attempt and review pages.
+ * Injects the CQP "Check Code Quality" button on quiz attempt pages and
+ * server-rendered CQP lint panels on review pages.
  *
  * @package    local_coderunner_pylint
  * @copyright  2026 Your Name
@@ -28,28 +28,20 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Inject pylint result panels into quiz pages before the footer.
+ * Inject CQP linter into quiz pages before the footer.
  *
- * This callback fires on every page load. It checks whether the current page
- * is a quiz attempt or review page, and if so, renders lint panels for any
- * Python CodeRunner questions that have been graded.
- *
- * The panels are output as hidden HTML divs, then a minimal AMD module
- * (lint_injector.js) repositions them next to each question's feedback area.
- * No AJAX calls are made.
+ * On attempt/preview pages: loads the client-side CQP analyser button.
+ * On review pages: renders server-side lint panels with CQP annotations.
  */
 function local_coderunner_pylint_before_footer() {
-    global $PAGE, $OUTPUT;
+    global $PAGE;
 
-    // Only act on quiz-related pages.
     $pagetype = $PAGE->pagetype;
-    $relevant = (
-        strpos($pagetype, 'mod-quiz-attempt') === 0 ||
-        strpos($pagetype, 'mod-quiz-review') === 0 ||
-        strpos($pagetype, 'question-preview') === 0
-    );
+    $isattempt = strpos($pagetype, 'mod-quiz-attempt') === 0;
+    $isreview = strpos($pagetype, 'mod-quiz-review') === 0;
+    $ispreview = strpos($pagetype, 'question-preview') === 0;
 
-    if (!$relevant) {
+    if (!$isattempt && !$isreview && !$ispreview) {
         return;
     }
 
@@ -58,6 +50,16 @@ function local_coderunner_pylint_before_footer() {
         return;
     }
 
+    // On attempt/preview pages, inject the client-side CQP linter button.
+    // The JS discovers CodeRunner questions via DOM — no server-side quba lookup needed.
+    if ($isattempt || $ispreview) {
+        $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
+            ['slots' => [], 'discover' => true]
+        ]);
+        return;
+    }
+
+    // On review pages, render server-side panels (using pylint if available).
     try {
         $panels = local_coderunner_pylint_build_panels();
     } catch (\Throwable $e) {
@@ -69,7 +71,6 @@ function local_coderunner_pylint_before_footer() {
         return;
     }
 
-    // Output hidden panels and the JS injector.
     $slotpanelmap = [];
     $html = '';
 
@@ -79,7 +80,6 @@ function local_coderunner_pylint_before_footer() {
         $html .= $panelhtml;
     }
 
-    // Output the hidden container with all panels, then inline JS to reposition them.
     echo '<div id="pylint-panels-container" style="display:none;" aria-hidden="true">' . $html . '</div>';
     echo '<script>
 (function(slotPanelMap) {
@@ -133,39 +133,31 @@ function local_coderunner_pylint_before_footer() {
  * @return array Keyed by slot number, values are rendered HTML strings.
  */
 function local_coderunner_pylint_build_panels(): array {
-    global $PAGE, $DB;
-
     $panels = [];
 
-    // Get the question usage for the current page.
     $quba = local_coderunner_pylint_get_quba();
     if ($quba === null) {
         return [];
     }
 
-    // Get minimum severity from config.
     $minseverity = get_config('local_coderunner_pylint', 'min_severity') ?: 'convention';
 
     foreach ($quba->get_slots() as $slot) {
         $qa = $quba->get_question_attempt($slot);
 
-        // Check if this question has been graded and has a response.
         if (!\local_coderunner_pylint\question_helper::has_been_graded($qa)) {
             continue;
         }
 
-        // Run lint (with caching).
         $result = \local_coderunner_pylint\question_helper::lint_question_attempt($qa);
         if ($result === null) {
             continue;
         }
 
-        // Get per-question min_severity override if available.
         $question = $qa->get_question();
         $config = \local_coderunner_pylint\question_helper::get_lint_config($question->id);
         $effectiveseverity = $config['min_severity'] ?? $minseverity;
 
-        // Render the panel.
         $panelid = 'pylint-panel-' . $slot;
         $panels[$slot] = \local_coderunner_pylint\output\lint_renderer::render(
             $result,
@@ -180,15 +172,11 @@ function local_coderunner_pylint_build_panels(): array {
 /**
  * Get the question usage (quba) for the current quiz page.
  *
- * Handles both quiz attempt pages (?attempt=X) and question preview pages
- * (?previewid=Y).
- *
- * @return \question_usage_by_activity|null The question usage, or null if not available.
+ * @return \question_usage_by_activity|null
  */
 function local_coderunner_pylint_get_quba(): ?\question_usage_by_activity {
     global $DB;
 
-    // Quiz attempt page: ?attempt=X
     $attemptid = optional_param('attempt', 0, PARAM_INT);
     if (!empty($attemptid)) {
         $attemptobj = $DB->get_record('quiz_attempts', ['id' => $attemptid]);
@@ -203,7 +191,6 @@ function local_coderunner_pylint_get_quba(): ?\question_usage_by_activity {
         }
     }
 
-    // Question preview page: ?previewid=Y
     $previewid = optional_param('previewid', 0, PARAM_INT);
     if (!empty($previewid)) {
         $preview = $DB->get_record('question_previews', ['id' => $previewid]);

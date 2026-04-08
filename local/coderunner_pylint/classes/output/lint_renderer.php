@@ -17,9 +17,10 @@
 namespace local_coderunner_pylint\output;
 
 use local_coderunner_pylint\pylint_result;
+use local_coderunner_pylint\cqp_mapper;
 
 /**
- * Renders pylint results as HTML using Mustache templates.
+ * Renders pylint results as HTML using Mustache templates, enriched with CQP principle info.
  *
  * @package    local_coderunner_pylint
  * @copyright  2026 Your Name
@@ -28,7 +29,7 @@ use local_coderunner_pylint\pylint_result;
 class lint_renderer {
 
     /**
-     * Render a pylint_result into an HTML panel.
+     * Render a pylint_result into an HTML panel with CQP principle annotations.
      *
      * @param pylint_result $result The lint result to render.
      * @param string $minseverity Minimum severity to display.
@@ -44,33 +45,40 @@ class lint_renderer {
                 'has_error' => true,
                 'error_message' => get_string('linterror', 'local_coderunner_pylint'),
                 'has_messages' => false,
-                'severity_groups' => [],
+                'cqp_groups' => [],
                 'score' => '?',
                 'scoreclass' => 'badge-secondary',
                 'total_issues' => 0,
             ]);
         }
 
-        $grouped = $result->get_grouped($minseverity);
-        $severitygroups = [];
+        // Group messages by CQP principle instead of severity.
+        $filtered = $result->get_filtered($minseverity);
+        $cqpgroups = [];
         $totalissues = 0;
 
-        foreach ($grouped as $type => $messages) {
-            $groupmessages = [];
-            foreach ($messages as $msg) {
-                $groupmessages[] = $msg->to_template_data();
+        foreach ($filtered as $msg) {
+            $principle = cqp_mapper::get_principle($msg);
+            $pn = $principle['number'];
+            if (!isset($cqpgroups[$pn])) {
+                $cqpgroups[$pn] = [
+                    'cqp_number' => $pn,
+                    'cqp_name' => $principle['name'],
+                    'cqp_short' => $principle['short'],
+                    'cqp_guideline' => $principle['guideline'],
+                    'count' => 0,
+                    'messages' => [],
+                ];
             }
-            $count = count($groupmessages);
-            $totalissues += $count;
-
-            $severitygroups[] = [
-                'type' => $type,
-                'label' => self::get_severity_label($type),
-                'cssclass' => self::get_severity_css($type),
-                'count' => $count,
-                'messages' => $groupmessages,
-            ];
+            $templatedata = cqp_mapper::enrich_template_data($msg->to_template_data(), $msg);
+            $cqpgroups[$pn]['messages'][] = $templatedata;
+            $cqpgroups[$pn]['count']++;
+            $totalissues++;
         }
+
+        // Sort by principle number.
+        ksort($cqpgroups);
+        $cqpgroups = array_values($cqpgroups);
 
         // Determine score badge class.
         $score = round($result->score, 1);
@@ -86,7 +94,7 @@ class lint_renderer {
             'panelid' => $panelid,
             'has_error' => false,
             'has_messages' => $totalissues > 0,
-            'severity_groups' => $severitygroups,
+            'cqp_groups' => $cqpgroups,
             'score' => number_format($score, 1),
             'scoreclass' => $scoreclass,
             'total_issues' => $totalissues,
