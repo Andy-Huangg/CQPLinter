@@ -297,7 +297,7 @@ define([], function() {
                 if (nextCode < lines.length) {
                     var nextTrimmed = lines[nextCode].trim();
                     var hasDocstring = /^("""|''')/.test(nextTrimmed);
-                    if (!hasDocstring && fname !== '__init__' && !fname.startsWith('_')) {
+                    if (!hasDocstring && fname !== '__init__' && fname.charAt(0) !== '_') {
                         issues.push({
                             line: i + 1, type: 'convention',
                             symbol: 'missing-function-docstring',
@@ -307,7 +307,7 @@ define([], function() {
                 }
 
                 // Short/non-descriptive function names (less than 3 chars, not dunder).
-                if (fname.length < 3 && !fname.startsWith('__') && ACCEPTABLE_SHORT.indexOf(fname) === -1) {
+                if (fname.length < 3 && fname.indexOf('__') !== 0 && ACCEPTABLE_SHORT.indexOf(fname) === -1) {
                     issues.push({
                         line: i + 1, type: 'convention',
                         symbol: 'short-function-name',
@@ -407,8 +407,8 @@ define([], function() {
             }
             var line = stripComment(lines[i]);
             // Count simple string literals (not triple-quoted).
-            var singles = line.match(/(?<!\w)'[^']*'/g);
-            var doubles = line.match(/(?<!\w)"[^"]*"/g);
+            var singles = line.match(/(^|[^a-zA-Z0-9_])'[^']*'/g);
+            var doubles = line.match(/(^|[^a-zA-Z0-9_])"[^"]*"/g);
             if (singles) {
                 singleQuoteCount += singles.length;
             }
@@ -439,7 +439,7 @@ define([], function() {
                 continue;
             }
             var fmatch = lines[j].trim().match(/^def\s+([a-zA-Z_]\w*)/);
-            if (fmatch && !fmatch[1].startsWith('__')) {
+            if (fmatch && fmatch[1].indexOf('__') !== 0) {
                 funcNames.push({name: fmatch[1], line: j + 1});
             }
         }

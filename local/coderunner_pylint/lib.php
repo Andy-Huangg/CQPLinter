@@ -36,26 +36,17 @@ defined('MOODLE_INTERNAL') || die();
 function local_coderunner_pylint_before_footer() {
     global $PAGE;
 
+    // Always load the client-side CQP linter. The JS module discovers CodeRunner
+    // questions by looking for Ace editors in the DOM — if none are present on the
+    // page it does nothing. This avoids fragile page-type matching.
+    $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
+        ['slots' => [], 'discover' => true]
+    ]);
+
+    // For review pages, also render server-side panels if pylint is available.
     $pagetype = $PAGE->pagetype;
-    $isattempt = strpos($pagetype, 'mod-quiz-attempt') === 0;
     $isreview = strpos($pagetype, 'mod-quiz-review') === 0;
-    $ispreview = (
-        strpos($pagetype, 'question-preview') === 0 ||
-        strpos($pagetype, 'question-bank-previewquestion') === 0
-    );
-
-    // Also inject on any page that contains CodeRunner questions.
-    $isquizpage = $isattempt || $isreview || $ispreview;
-    if (!$isquizpage) {
-        return;
-    }
-
-    // On attempt/preview pages, inject the client-side CQP linter button.
-    // The JS discovers CodeRunner questions via DOM — no server-side quba lookup needed.
-    if ($isattempt || $ispreview) {
-        $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
-            ['slots' => [], 'discover' => true]
-        ]);
+    if (!$isreview) {
         return;
     }
 
