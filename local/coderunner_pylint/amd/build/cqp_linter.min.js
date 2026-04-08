@@ -220,10 +220,20 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
             return;
         }
 
-        var answerArea = questionDiv.querySelector('.answer') ||
-                         questionDiv.querySelector('.qtype_coderunner_answer') ||
-                         questionDiv.querySelector('.ace_editor');
-        if (!answerArea) {
+        // Find the answer container — prefer the wrapping div so we insert
+        // OUTSIDE it, not inside it next to the Ace editor (which would trigger
+        // Ace's auto-resize in an infinite loop).
+        var answerContainer = questionDiv.querySelector('.answer') ||
+                              questionDiv.querySelector('.qtype_coderunner_answer');
+        if (!answerContainer) {
+            // Last resort: find the Ace editor and use its parent as the container.
+            var aceEl = questionDiv.querySelector('.ace_editor');
+            if (!aceEl) {
+                return;
+            }
+            answerContainer = aceEl.parentNode;
+        }
+        if (!answerContainer || !answerContainer.parentNode) {
             return;
         }
 
@@ -273,9 +283,8 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
         wrapper.appendChild(btn);
         wrapper.appendChild(resultsDiv);
 
-        if (answerArea.parentNode) {
-            answerArea.parentNode.insertBefore(wrapper, answerArea.nextSibling);
-        }
+        // Insert after the answer container, never inside it.
+        answerContainer.parentNode.insertBefore(wrapper, answerContainer.nextSibling);
     }
 
     return {
