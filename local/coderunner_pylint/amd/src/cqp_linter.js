@@ -178,64 +178,21 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
         return html;
     }
 
+    /**
+     * Escape HTML special characters.
+     */
     function escapeHtml(text) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(text));
         return div.innerHTML;
     }
 
+    /**
+     * Escape for HTML attribute values.
+     */
     function escapeAttr(text) {
         return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
-    return {
-        /**
-         * Initialise the CQP linter for CodeRunner questions on the page.
-         *
-         * Called from lib.php. If slots are provided, buttons are added to those
-         * specific questions. If discover mode is set, all CodeRunner questions
-         * are discovered via DOM inspection.
-         *
-         * @param {Object} config Configuration: {slots: [{slot, questionid}], discover: bool}
-         */
-        init: function(config) {
-            var doInit = function() {
-                var targets = [];
-
-                if (config.slots && config.slots.length > 0) {
-                    config.slots.forEach(function(slotInfo) {
-                        var questionDiv = findQuestionDiv(slotInfo.slot);
-                        if (questionDiv) {
-                            targets.push(questionDiv);
-                        }
-                    });
-                }
-
-                if (config.discover || targets.length === 0) {
-                    // Discover all CodeRunner questions by looking for Ace editors.
-                    var queContainers = document.querySelectorAll('.que.coderunner, .que');
-                    queContainers.forEach(function(q) {
-                        if (q.querySelector('.ace_editor') && targets.indexOf(q) === -1) {
-                            targets.push(q);
-                        }
-                    });
-                }
-
-                targets.forEach(function(questionDiv) {
-                    attachButton(questionDiv);
-                });
-            };
-
-            // Delay to let Ace editors initialise.
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(doInit, 500);
-                });
-            } else {
-                setTimeout(doInit, 500);
-            }
-        }
-    };
 
     /**
      * Find a question container by slot number.
@@ -320,4 +277,49 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
             answerArea.parentNode.insertBefore(wrapper, answerArea.nextSibling);
         }
     }
+
+    return {
+        /**
+         * Initialise the CQP linter for CodeRunner questions on the page.
+         *
+         * @param {Object} config Configuration: {slots: [{slot, questionid}], discover: bool}
+         */
+        init: function(config) {
+            var doInit = function() {
+                var targets = [];
+
+                if (config.slots && config.slots.length > 0) {
+                    config.slots.forEach(function(slotInfo) {
+                        var questionDiv = findQuestionDiv(slotInfo.slot);
+                        if (questionDiv) {
+                            targets.push(questionDiv);
+                        }
+                    });
+                }
+
+                if (config.discover || targets.length === 0) {
+                    // Discover all CodeRunner questions by looking for Ace editors.
+                    var queContainers = document.querySelectorAll('.que.coderunner, .que');
+                    queContainers.forEach(function(q) {
+                        if (q.querySelector('.ace_editor') && targets.indexOf(q) === -1) {
+                            targets.push(q);
+                        }
+                    });
+                }
+
+                targets.forEach(function(questionDiv) {
+                    attachButton(questionDiv);
+                });
+            };
+
+            // Delay to let Ace editors initialise.
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(doInit, 500);
+                });
+            } else {
+                setTimeout(doInit, 500);
+            }
+        }
+    };
 });

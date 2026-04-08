@@ -39,14 +39,14 @@ function local_coderunner_pylint_before_footer() {
     $pagetype = $PAGE->pagetype;
     $isattempt = strpos($pagetype, 'mod-quiz-attempt') === 0;
     $isreview = strpos($pagetype, 'mod-quiz-review') === 0;
-    $ispreview = strpos($pagetype, 'question-preview') === 0;
+    $ispreview = (
+        strpos($pagetype, 'question-preview') === 0 ||
+        strpos($pagetype, 'question-bank-previewquestion') === 0
+    );
 
-    if (!$isattempt && !$isreview && !$ispreview) {
-        return;
-    }
-
-    // Check CodeRunner is installed.
-    if (!\core_component::get_component_directory('qtype_coderunner')) {
+    // Also inject on any page that contains CodeRunner questions.
+    $isquizpage = $isattempt || $isreview || $ispreview;
+    if (!$isquizpage) {
         return;
     }
 
@@ -56,6 +56,11 @@ function local_coderunner_pylint_before_footer() {
         $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
             ['slots' => [], 'discover' => true]
         ]);
+        return;
+    }
+
+    // Check CodeRunner is installed (only needed for server-side review panels).
+    if (!\core_component::get_component_directory('qtype_coderunner')) {
         return;
     }
 
