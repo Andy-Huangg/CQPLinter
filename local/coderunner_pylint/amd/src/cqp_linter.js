@@ -361,26 +361,13 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
         wrapper.appendChild(resultsDiv);
     }
 
-    /**
-     * Attach a teacher-only "Configure linting" link.
-     */
-    function attachConfigureLink(wrapper, editurl, enabled) {
-        if (wrapper.querySelector('.cqp-configure-link')) {
-            return;
-        }
-        var link = document.createElement('a');
-        link.className = 'cqp-configure-link';
-        link.href = editurl;
-        link.textContent = enabled ? 'Configure linting' : 'Enable linting';
-        wrapper.appendChild(link);
-    }
-
     return {
         /**
          * Initialise the CQP linter for the specific CodeRunner questions
-         * passed in by the PHP side. Questions not listed are left alone.
+         * passed in by the PHP side. Only questions whose teacher has
+         * explicitly enabled linting should appear in the slots list.
          *
-         * @param {Object} config {slots: [{slot, questionid, enabled, editurl}]}
+         * @param {Object} config {slots: [{slot, questionid}]}
          */
         init: function(config) {
             var slots = (config && config.slots) || [];
@@ -398,12 +385,7 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
                     if (!wrapper) {
                         return;
                     }
-                    if (slotInfo.enabled) {
-                        attachCheckButton(questionDiv, wrapper);
-                    }
-                    if (slotInfo.editurl) {
-                        attachConfigureLink(wrapper, slotInfo.editurl, slotInfo.enabled);
-                    }
+                    attachCheckButton(questionDiv, wrapper);
                 });
             };
 

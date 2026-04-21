@@ -28,13 +28,22 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Inject CQP linter into quiz pages before the footer.
+ * Inject CQP linter into quiz and question-edit pages before the footer.
  *
- * On attempt/preview pages: loads the client-side CQP analyser button.
- * On review pages: renders server-side lint panels with CQP annotations.
+ * On attempt/preview pages: loads the client-side "Check Code Quality" button
+ * for questions whose teacher has enabled linting.
+ * On review pages: also renders server-side lint panels.
+ * On the question edit page: renders a "Configure linting" card for Python
+ * CodeRunner questions, linking to manage.php.
  */
 function local_coderunner_pylint_before_footer() {
     global $PAGE;
+
+    if (!\core_component::get_component_directory('qtype_coderunner')) {
+        return;
+    }
+
+    local_coderunner_pylint_inject_edit_page_link();
 
     $pagetype = $PAGE->pagetype;
     $isattempt = strpos($pagetype, 'mod-quiz-attempt') === 0;
@@ -45,47 +54,24 @@ function local_coderunner_pylint_before_footer() {
         return;
     }
 
-    if (!\core_component::get_component_directory('qtype_coderunner')) {
-        return;
-    }
-
     $quba = local_coderunner_pylint_get_quba();
     if ($quba === null) {
         return;
     }
 
     $slotsinfo = [];
-    $returnurl = $PAGE->url instanceof \moodle_url ? $PAGE->url->out_as_local_url(false) : '';
     foreach ($quba->get_slots() as $slot) {
         $qa = $quba->get_question_attempt($slot);
         if (!\local_coderunner_pylint\question_helper::is_python_coderunner($qa)) {
             continue;
         }
         $question = $qa->get_question();
-        $enabled = \local_coderunner_pylint\question_helper::is_lint_enabled($question->id);
-
-        $editurl = null;
-        try {
-            $qctx = \local_coderunner_pylint\question_helper::get_question_context($question->id);
-            if (has_capability('local/coderunner_pylint:configure', $qctx)) {
-                $editurl = (new \moodle_url('/local/coderunner_pylint/manage.php', [
-                    'questionid' => $question->id,
-                    'returnurl'  => $returnurl,
-                ]))->out(false);
-            }
-        } catch (\Throwable $e) {
-            // No context => no configure link; leave $editurl null.
-        }
-
-        if (!$enabled && $editurl === null) {
+        if (!\local_coderunner_pylint\question_helper::is_lint_enabled($question->id)) {
             continue;
         }
-
         $slotsinfo[] = [
             'slot'       => (int)$slot,
             'questionid' => (int)$question->id,
-            'enabled'    => (bool)$enabled,
-            'editurl'    => $editurl,
         ];
     }
 
@@ -165,6 +151,99 @@ function local_coderunner_pylint_before_footer() {
     }
 })(' . json_encode($slotpanelmap) . ');
 </script>';
+}
+
+/**
+ * On the /question/question.php edit page, render a small card with the
+ * current linting state for the question and a button that opens the
+ * per-question configuration form.
+ *
+ * No-op on every other page, on the new-question flow (no id yet), and
+ * when the question isn't a Python CodeRunner question or the user lacks
+ * the configure capability on its context.
+ */
+function local_coderunner_pylint_inject_edit_page_link(): void {
+    global $PAGE;
+
+    $script = $_SERVER['SCRIPT_NAME'] ?? '';
+    if (strpos($script, '/question/question.php') === false) {
+        return;
+    }
+
+    $questionid = optional_param('id', 0, PARAM_INT);
+    if ($questionid <= 0) {
+        // Creating a new question; no id exists yet.
+        return;
+    }
+
+    try {
+        $question = \question_bank::load_question($questionid);
+    } catch (\Throwable $e) {
+        return;
+    }
+
+    if ($question->get_type_name() !== 'coderunner') {
+        return;
+    }
+    $lang = strtolower((string)($question->language ?? $question->coderunnertype ?? ''));
+    if (strpos($lang, 'python') === false) {
+        return;
+    }
+
+    try {
+        $ctx = \local_coderunner_pylint\question_helper::get_question_context($questionid);
+    } catch (\Throwable $e) {
+        return;
+    }
+    if (!has_capability('local/coderunner_pylint:configure', $ctx)) {
+        return;
+    }
+
+    $enabled = \local_coderunner_pylint\question_helper::is_lint_enabled($questionid);
+    $returnurl = $PAGE->url instanceof \moodle_url ? $PAGE->url->out_as_local_url(false) : '';
+    $manageurl = (new \moodle_url('/local/coderunner_pylint/manage.php', [
+        'questionid' => $questionid,
+        'returnurl'  => $returnurl,
+    ]))->out(false);
+
+    $statestr = $enabled
+        ? get_string('manage_state_enabled', 'local_coderunner_pylint')
+        : get_string('manage_state_disabled', 'local_coderunner_pylint');
+    $btnstr = $enabled
+        ? get_string('configure_linting', 'local_coderunner_pylint')
+        : get_string('enable_linting', 'local_coderunner_pylint');
+    $title = get_string('pluginname', 'local_coderunner_pylint');
+
+    $html = '<div id="local_coderunner_pylint-edit-card" class="card" style="margin:1rem 0;">'
+          . '<div class="card-body">'
+          . '<h5 class="card-title">' . s($title) . '</h5>'
+          . '<p class="card-text">' . s($statestr) . '</p>'
+          . '<a class="btn btn-secondary" href="' . $manageurl . '">' . s($btnstr) . '</a>'
+          . '</div></div>';
+
+    echo $html;
+
+    // Relocate the card to sit directly below the main question edit form,
+    // instead of being stranded above the footer.
+    $PAGE->requires->js_amd_inline(<<<'JS'
+require([], function() {
+    function move() {
+        var card = document.getElementById('local_coderunner_pylint-edit-card');
+        if (!card) { return; }
+        var form = document.querySelector('form.mform') ||
+                   document.querySelector('#mform1') ||
+                   document.querySelector('form[action*="question.php"]');
+        if (form && form.parentNode) {
+            form.parentNode.insertBefore(card, form.nextSibling);
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', move);
+    } else {
+        move();
+    }
+});
+JS);
 }
 
 /**

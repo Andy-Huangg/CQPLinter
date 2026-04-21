@@ -164,21 +164,6 @@ details[open] > .pylint-header {
     opacity: 0.7;
 }
 
-.cqp-configure-link {
-    display: inline-block;
-    margin-left: 0.75rem;
-    font-size: 0.85em;
-    text-decoration: none;
-}
-
-.cqp-configure-link::before {
-    content: "\2699\00a0"; /* gear + nbsp */
-}
-
-.cqp-configure-link:hover {
-    text-decoration: underline;
-}
-
 /* ===== Ace editor inline highlights ===== */
 .cqp-highlight-error {
     position: absolute;

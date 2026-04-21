@@ -109,3 +109,5 @@ $string['manage_use_global'] = 'Use site default';
 $string['manage_saved'] = 'Linting configuration saved.';
 $string['configure_linting'] = 'Configure linting';
 $string['enable_linting'] = 'Enable linting';
+$string['manage_state_enabled'] = 'Pylint is currently enabled for this question. Students will see a "Check Code Quality" button when answering it.';
+$string['manage_state_disabled'] = 'Pylint is not yet enabled for this question. Students will not see any linting UI until you enable it.';
