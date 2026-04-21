@@ -26,6 +26,12 @@ namespace qbank_coderunnerpylint;
 class plugin_feature extends \core_question\local\bank\plugin_features_base {
 
     public function get_question_columns(\core_question\local\bank\view $qbank): array {
+        // Defensive: if a future/other Moodle build renames or removes the
+        // menu_action_condition_base class, silently contribute no columns
+        // rather than breaking the whole question bank page.
+        if (!class_exists('\\core_question\\local\\bank\\menu_action_condition_base')) {
+            return [];
+        }
         return [
             new configure_action_column($qbank),
         ];

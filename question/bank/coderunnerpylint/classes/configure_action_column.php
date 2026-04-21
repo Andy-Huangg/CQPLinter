@@ -21,12 +21,15 @@ namespace qbank_coderunnerpylint;
  * row menu for CodeRunner questions. Clicking it opens the per-question
  * linting configuration page provided by local_coderunner_pylint.
  *
+ * Extends menu_action_condition_base (Moodle 4.0+), which already
+ * implements menuable_action and renders get_url_icon_and_label() as a
+ * dropdown item in the row's action menu.
+ *
  * @package    qbank_coderunnerpylint
  * @copyright  2026 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class configure_action_column extends \core_question\local\bank\action_column_base
-        implements \core_question\local\bank\menuable_action {
+class configure_action_column extends \core_question\local\bank\menu_action_condition_base {
 
     /**
      * Unique column name used by the qbank renderer.
@@ -39,7 +42,7 @@ class configure_action_column extends \core_question\local\bank\action_column_ba
      * Fields we need the qbank query to select for us.
      */
     public function get_required_fields(): array {
-        return ['q.id', 'q.qtype'];
+        return array_merge(parent::get_required_fields(), ['q.id', 'q.qtype']);
     }
 
     /**
@@ -54,6 +57,10 @@ class configure_action_column extends \core_question\local\bank\action_column_ba
      */
     protected function get_url_icon_and_label(\stdClass $question): array {
         if (empty($question->qtype) || $question->qtype !== 'coderunner') {
+            return [null, null, null];
+        }
+
+        if (!class_exists('\\local_coderunner_pylint\\question_helper')) {
             return [null, null, null];
         }
 
