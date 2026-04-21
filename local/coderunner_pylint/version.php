@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026042102;        // YYYYMMDDXX.
+$plugin->version   = 2026042103;        // YYYYMMDDXX.
 $plugin->requires  = 2022112800;        // Moodle 4.1+.
 $plugin->component = 'local_coderunner_pylint';
 $plugin->maturity  = MATURITY_ALPHA;

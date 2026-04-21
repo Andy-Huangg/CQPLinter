@@ -163,10 +163,13 @@ function local_coderunner_pylint_before_footer() {
  * the configure capability on its context.
  */
 function local_coderunner_pylint_inject_edit_page_link(): void {
-    global $PAGE;
+    global $DB, $PAGE;
 
     $script = $_SERVER['SCRIPT_NAME'] ?? '';
-    if (strpos($script, '/question/question.php') === false) {
+    // Matches both the legacy /question/question.php entry point and the
+    // qbank_editquestion variant /question/bank/editquestion/question.php
+    // used in parts of Moodle 4.x.
+    if (!preg_match('#/question(?:/bank/[a-zA-Z0-9_]+)?/question\.php$#', $script)) {
         return;
     }
 
@@ -176,18 +179,27 @@ function local_coderunner_pylint_inject_edit_page_link(): void {
         return;
     }
 
-    try {
-        $question = \question_bank::load_question($questionid);
-    } catch (\Throwable $e) {
+    // Use direct DB reads instead of question_bank::load_question — that call
+    // relies on full qtype loading, and can fail or short-circuit in subtle
+    // ways during the edit flow. A plain query on {question} is enough here.
+    $question = $DB->get_record('question', ['id' => $questionid], 'id, qtype, name');
+    if (!$question || $question->qtype !== 'coderunner') {
         return;
     }
 
-    if ($question->get_type_name() !== 'coderunner') {
-        return;
-    }
-    $lang = strtolower((string)($question->language ?? $question->coderunnertype ?? ''));
-    if (strpos($lang, 'python') === false) {
-        return;
+    // Best-effort Python check: only hide the card if we can prove the
+    // question is non-Python. If CodeRunner's options table isn't present
+    // or doesn't store a recognisable language, fall through and show it.
+    $dbman = $DB->get_manager();
+    if ($dbman->table_exists('question_coderunner_options')) {
+        $options = $DB->get_record('question_coderunner_options',
+            ['questionid' => $questionid], 'coderunnertype');
+        if ($options && !empty($options->coderunnertype)) {
+            $type = strtolower((string)$options->coderunnertype);
+            if (strpos($type, 'python') === false) {
+                return;
+            }
+        }
     }
 
     try {
