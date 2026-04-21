@@ -14,21 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Plugin version and other metadata.
- *
- * @package    local_coderunner_pylint
- * @copyright  2026 Your Name
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2026042100;        // YYYYMMDDXX.
-$plugin->requires  = 2022112800;        // Moodle 4.1+.
-$plugin->component = 'local_coderunner_pylint';
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.3.0';
-$plugin->dependencies = [
-    'qtype_coderunner' => ANY_VERSION,
-];
+$string['pluginname'] = 'CodeRunner Pylint question bank action';
+$string['configure_linting'] = 'Configure linting';
+$string['privacy:metadata'] = 'The CodeRunner Pylint question bank action plugin does not store any personal data.';

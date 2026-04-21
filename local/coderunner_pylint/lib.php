@@ -36,22 +36,66 @@ defined('MOODLE_INTERNAL') || die();
 function local_coderunner_pylint_before_footer() {
     global $PAGE;
 
-    // Always load the client-side CQP linter. The JS module discovers CodeRunner
-    // questions by looking for Ace editors in the DOM — if none are present on the
-    // page it does nothing. This avoids fragile page-type matching.
-    $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
-        ['slots' => [], 'discover' => true]
-    ]);
-
-    // For review pages, also render server-side panels if pylint is available.
     $pagetype = $PAGE->pagetype;
-    $isreview = strpos($pagetype, 'mod-quiz-review') === 0;
-    if (!$isreview) {
+    $isattempt = strpos($pagetype, 'mod-quiz-attempt') === 0;
+    $ispreview = strpos($pagetype, 'mod-quiz-preview') === 0
+              || strpos($pagetype, 'question-preview') === 0;
+    $isreview  = strpos($pagetype, 'mod-quiz-review') === 0;
+    if (!$isattempt && !$ispreview && !$isreview) {
         return;
     }
 
-    // Check CodeRunner is installed (only needed for server-side review panels).
     if (!\core_component::get_component_directory('qtype_coderunner')) {
+        return;
+    }
+
+    $quba = local_coderunner_pylint_get_quba();
+    if ($quba === null) {
+        return;
+    }
+
+    $slotsinfo = [];
+    $returnurl = $PAGE->url instanceof \moodle_url ? $PAGE->url->out_as_local_url(false) : '';
+    foreach ($quba->get_slots() as $slot) {
+        $qa = $quba->get_question_attempt($slot);
+        if (!\local_coderunner_pylint\question_helper::is_python_coderunner($qa)) {
+            continue;
+        }
+        $question = $qa->get_question();
+        $enabled = \local_coderunner_pylint\question_helper::is_lint_enabled($question->id);
+
+        $editurl = null;
+        try {
+            $qctx = \local_coderunner_pylint\question_helper::get_question_context($question->id);
+            if (has_capability('local/coderunner_pylint:configure', $qctx)) {
+                $editurl = (new \moodle_url('/local/coderunner_pylint/manage.php', [
+                    'questionid' => $question->id,
+                    'returnurl'  => $returnurl,
+                ]))->out(false);
+            }
+        } catch (\Throwable $e) {
+            // No context => no configure link; leave $editurl null.
+        }
+
+        if (!$enabled && $editurl === null) {
+            continue;
+        }
+
+        $slotsinfo[] = [
+            'slot'       => (int)$slot,
+            'questionid' => (int)$question->id,
+            'enabled'    => (bool)$enabled,
+            'editurl'    => $editurl,
+        ];
+    }
+
+    if (!empty($slotsinfo)) {
+        $PAGE->requires->js_call_amd('local_coderunner_pylint/cqp_linter', 'init', [
+            ['slots' => $slotsinfo]
+        ]);
+    }
+
+    if (!$isreview) {
         return;
     }
 

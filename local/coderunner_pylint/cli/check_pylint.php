@@ -50,8 +50,7 @@ echo "  pylint_path:     " . (get_config('local_coderunner_pylint', 'pylint_path
 echo "  timeout:         " . (get_config('local_coderunner_pylint', 'timeout') ?: '10') . "s\n";
 echo "  max_code_size:   " . (get_config('local_coderunner_pylint', 'max_code_size') ?: '50000') . " bytes\n";
 echo "  default_disable: " . (get_config('local_coderunner_pylint', 'default_disable') ?: 'import-error') . "\n";
-echo "  min_severity:    " . (get_config('local_coderunner_pylint', 'min_severity') ?: 'convention') . "\n";
-echo "  enable_by_default: " . (get_config('local_coderunner_pylint', 'enable_by_default') ? 'yes' : 'no') . "\n\n";
+echo "  min_severity:    " . (get_config('local_coderunner_pylint', 'min_severity') ?: 'convention') . "\n\n";
 
 // Check vendor directory.
 $vendordir = __DIR__ . '/../vendor/python';

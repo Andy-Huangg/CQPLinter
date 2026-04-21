@@ -85,22 +85,45 @@ class question_helper {
     /**
      * Check if linting is enabled for a specific question.
      *
-     * Checks per-question config first, then falls back to the global default.
+     * Linting is strictly opt-in per question: a row in local_crpylint_qconfig
+     * with enabled=1 is required. Questions without a row are never linted.
      *
      * @param int $questionid The question ID.
-     * @return bool True if linting is enabled.
+     * @return bool True if linting is enabled for this question.
      */
     public static function is_lint_enabled(int $questionid): bool {
         global $DB;
 
-        // Check per-question config.
         $config = $DB->get_record('local_crpylint_qconfig', ['questionid' => $questionid]);
-        if ($config) {
-            return (bool)$config->enabled;
+        if (!$config) {
+            return false;
         }
+        return (bool)$config->enabled;
+    }
 
-        // Fall back to global default.
-        return (bool)get_config('local_coderunner_pylint', 'enable_by_default');
+    /**
+     * Resolve the Moodle context that a given question lives in.
+     *
+     * Walks question → question_versions → question_bank_entries →
+     * question_categories → context. Used for capability checks on the
+     * per-question management page.
+     *
+     * @param int $questionid The question ID.
+     * @return \context The containing context.
+     * @throws \dml_exception If the question cannot be located.
+     */
+    public static function get_question_context(int $questionid): \context {
+        global $DB;
+
+        $sql = "SELECT ctx.id AS ctxid
+                  FROM {question} q
+                  JOIN {question_versions} qv ON qv.questionid = q.id
+                  JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+                  JOIN {question_categories} qc ON qc.id = qbe.questioncategoryid
+                  JOIN {context} ctx ON ctx.id = qc.contextid
+                 WHERE q.id = :qid";
+        $record = $DB->get_record_sql($sql, ['qid' => $questionid], MUST_EXIST);
+        return \context::instance_by_id($record->ctxid);
     }
 
     /**

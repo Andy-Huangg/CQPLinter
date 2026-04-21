@@ -54,13 +54,9 @@ class observer {
     private static function process_attempt(\mod_quiz\event\attempt_submitted $event): void {
         global $DB;
 
-        // Check if the plugin is globally enabled.
-        if (!get_config('local_coderunner_pylint', 'enable_by_default')) {
-            // Even if globally disabled, per-question overrides could exist.
-            // But for efficiency in the observer, skip if globally off.
-            return;
-        }
-
+        // Linting is now opt-in per question — question_helper::lint_question_attempt()
+        // short-circuits on questions without a per-question config row, so we can
+        // safely iterate every slot without a global gate here.
         $attemptid = $event->objectid;
 
         // Load the quiz attempt.

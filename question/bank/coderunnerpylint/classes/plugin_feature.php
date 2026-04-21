@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace qbank_coderunnerpylint;
+
 /**
- * Plugin version and other metadata.
+ * Registers the "Configure linting" action column with the question bank.
  *
- * @package    local_coderunner_pylint
+ * @package    qbank_coderunnerpylint
  * @copyright  2026 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class plugin_feature extends \core_question\local\bank\plugin_features_base {
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2026042100;        // YYYYMMDDXX.
-$plugin->requires  = 2022112800;        // Moodle 4.1+.
-$plugin->component = 'local_coderunner_pylint';
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.3.0';
-$plugin->dependencies = [
-    'qtype_coderunner' => ANY_VERSION,
-];
+    public function get_question_columns(\core_question\local\bank\view $qbank): array {
+        return [
+            new configure_action_column($qbank),
+        ];
+    }
+}

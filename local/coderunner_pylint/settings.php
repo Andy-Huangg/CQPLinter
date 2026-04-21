@@ -93,14 +93,6 @@ if ($hassiteconfig) {
         $severityoptions
     ));
 
-    // Enable by default.
-    $settings->add(new admin_setting_configcheckbox(
-        'local_coderunner_pylint/enable_by_default',
-        get_string('enable_by_default', 'local_coderunner_pylint'),
-        get_string('enable_by_default_desc', 'local_coderunner_pylint'),
-        1
-    ));
-
     // Cache TTL.
     $settings->add(new admin_setting_configtext(
         'local_coderunner_pylint/cache_ttl',

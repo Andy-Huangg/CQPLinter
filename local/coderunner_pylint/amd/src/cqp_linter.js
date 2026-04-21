@@ -273,27 +273,50 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
     }
 
     /**
-     * Attach the "Check Code Quality" button to a question container.
+     * Find the element we should insert our controls after — the answer
+     * container wrapping the Ace editor. We insert OUTSIDE it to avoid
+     * triggering Ace's auto-resize loop.
      */
-    function attachButton(questionDiv) {
-        if (questionDiv.querySelector('.cqp-lint-btn')) {
-            return;
-        }
-
-        // Find the answer container — prefer the wrapping div so we insert
-        // OUTSIDE it, not inside it next to the Ace editor (which would trigger
-        // Ace's auto-resize in an infinite loop).
+    function findAnswerContainer(questionDiv) {
         var answerContainer = questionDiv.querySelector('.answer') ||
                               questionDiv.querySelector('.qtype_coderunner_answer');
         if (!answerContainer) {
-            // Last resort: find the Ace editor and use its parent as the container.
             var aceEl = questionDiv.querySelector('.ace_editor');
             if (!aceEl) {
-                return;
+                return null;
             }
             answerContainer = aceEl.parentNode;
         }
         if (!answerContainer || !answerContainer.parentNode) {
+            return null;
+        }
+        return answerContainer;
+    }
+
+    /**
+     * Get (or create) the per-question wrapper that holds the lint controls.
+     * Ensures we don't double-attach if init() fires twice.
+     */
+    function getOrCreateWrapper(questionDiv) {
+        var existing = questionDiv.querySelector('.cqp-lint-wrapper');
+        if (existing) {
+            return existing;
+        }
+        var answerContainer = findAnswerContainer(questionDiv);
+        if (!answerContainer) {
+            return null;
+        }
+        var wrapper = document.createElement('div');
+        wrapper.className = 'cqp-lint-wrapper';
+        answerContainer.parentNode.insertBefore(wrapper, answerContainer.nextSibling);
+        return wrapper;
+    }
+
+    /**
+     * Attach the "Check Code Quality" button to a question container.
+     */
+    function attachCheckButton(questionDiv, wrapper) {
+        if (wrapper.querySelector('.cqp-lint-btn')) {
             return;
         }
 
@@ -318,66 +341,69 @@ define(['local_coderunner_pylint/python_analyser'], function(Analyser) {
                 return;
             }
 
-            // Clear previous results.
             var editor = findAceEditor(questionDiv);
             if (editor) {
                 clearAnnotations(editor, currentState);
                 currentState = null;
             }
 
-            // Run the client-side analysis.
             var data = Analyser.analyse(code);
 
-            // Apply Ace editor annotations.
             if (editor && data.messages.length > 0) {
                 currentState = applyAnnotations(editor, data.messages);
             }
 
-            // Show results panel.
             resultsDiv.innerHTML = buildResultsPanel(data);
             resultsDiv.style.display = '';
         });
 
-        var wrapper = document.createElement('div');
-        wrapper.className = 'cqp-lint-wrapper';
         wrapper.appendChild(btn);
         wrapper.appendChild(resultsDiv);
+    }
 
-        // Insert after the answer container, never inside it.
-        answerContainer.parentNode.insertBefore(wrapper, answerContainer.nextSibling);
+    /**
+     * Attach a teacher-only "Configure linting" link.
+     */
+    function attachConfigureLink(wrapper, editurl, enabled) {
+        if (wrapper.querySelector('.cqp-configure-link')) {
+            return;
+        }
+        var link = document.createElement('a');
+        link.className = 'cqp-configure-link';
+        link.href = editurl;
+        link.textContent = enabled ? 'Configure linting' : 'Enable linting';
+        wrapper.appendChild(link);
     }
 
     return {
         /**
-         * Initialise the CQP linter for CodeRunner questions on the page.
+         * Initialise the CQP linter for the specific CodeRunner questions
+         * passed in by the PHP side. Questions not listed are left alone.
          *
-         * @param {Object} config Configuration: {slots: [{slot, questionid}], discover: bool}
+         * @param {Object} config {slots: [{slot, questionid, enabled, editurl}]}
          */
         init: function(config) {
+            var slots = (config && config.slots) || [];
+            if (slots.length === 0) {
+                return;
+            }
+
             var doInit = function() {
-                var targets = [];
-
-                if (config.slots && config.slots.length > 0) {
-                    config.slots.forEach(function(slotInfo) {
-                        var questionDiv = findQuestionDiv(slotInfo.slot);
-                        if (questionDiv) {
-                            targets.push(questionDiv);
-                        }
-                    });
-                }
-
-                if (config.discover || targets.length === 0) {
-                    // Discover all CodeRunner questions by looking for Ace editors.
-                    var queContainers = document.querySelectorAll('.que.coderunner, .que');
-                    queContainers.forEach(function(q) {
-                        if (q.querySelector('.ace_editor') && targets.indexOf(q) === -1) {
-                            targets.push(q);
-                        }
-                    });
-                }
-
-                targets.forEach(function(questionDiv) {
-                    attachButton(questionDiv);
+                slots.forEach(function(slotInfo) {
+                    var questionDiv = findQuestionDiv(slotInfo.slot);
+                    if (!questionDiv) {
+                        return;
+                    }
+                    var wrapper = getOrCreateWrapper(questionDiv);
+                    if (!wrapper) {
+                        return;
+                    }
+                    if (slotInfo.enabled) {
+                        attachCheckButton(questionDiv, wrapper);
+                    }
+                    if (slotInfo.editurl) {
+                        attachConfigureLink(wrapper, slotInfo.editurl, slotInfo.enabled);
+                    }
                 });
             };
 

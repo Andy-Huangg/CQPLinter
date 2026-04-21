@@ -40,8 +40,6 @@ $string['default_disable'] = 'Disabled checks';
 $string['default_disable_desc'] = 'Comma-separated list of pylint checks to disable globally (e.g. "import-error,no-member"). These checks will not appear in student feedback.';
 $string['min_severity'] = 'Minimum severity';
 $string['min_severity_desc'] = 'Only show messages at this severity level or above.';
-$string['enable_by_default'] = 'Enable by default';
-$string['enable_by_default_desc'] = 'When enabled, all Python CodeRunner questions will show lint feedback unless explicitly disabled per question.';
 $string['cache_ttl'] = 'Cache lifetime (seconds)';
 $string['cache_ttl_desc'] = 'How long to cache lint results for identical code submissions.';
 $string['pylintrc_path'] = 'Pylintrc file path';
@@ -98,3 +96,16 @@ $string['coderunner_pylint:manageglobalsettings'] = 'Manage global pylint settin
 
 // Cache.
 $string['cachedef_lint_results'] = 'Cached pylint analysis results';
+
+// Per-question management form.
+$string['manage_title'] = 'Configure linting';
+$string['manage_heading'] = 'Pylint configuration for this question';
+$string['manage_question'] = 'Question';
+$string['manage_enabled'] = 'Enabled';
+$string['manage_enabled_label'] = 'Run pylint on this question';
+$string['manage_disabled_checks'] = 'Extra disabled checks';
+$string['manage_disabled_checks_help'] = 'Comma-separated list of pylint checks to disable for this question only (e.g. "missing-docstring,too-few-public-methods"). These are added to the site-wide disabled list.';
+$string['manage_use_global'] = 'Use site default';
+$string['manage_saved'] = 'Linting configuration saved.';
+$string['configure_linting'] = 'Configure linting';
+$string['enable_linting'] = 'Enable linting';
