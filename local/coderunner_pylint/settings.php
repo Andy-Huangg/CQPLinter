@@ -34,20 +34,11 @@ if ($hassiteconfig) {
         get_string('settings_heading_desc', 'local_coderunner_pylint')
     ));
 
-    // Python interpreter path.
+    // Jobe server host (optional override — inherited from CodeRunner if empty).
     $settings->add(new admin_setting_configtext(
-        'local_coderunner_pylint/python_path',
-        get_string('python_path', 'local_coderunner_pylint'),
-        get_string('python_path_desc', 'local_coderunner_pylint'),
-        'python3',
-        PARAM_TEXT
-    ));
-
-    // Pylint binary path (optional override).
-    $settings->add(new admin_setting_configtext(
-        'local_coderunner_pylint/pylint_path',
-        get_string('pylint_path', 'local_coderunner_pylint'),
-        get_string('pylint_path_desc', 'local_coderunner_pylint'),
+        'local_coderunner_pylint/jobe_host',
+        get_string('jobe_host', 'local_coderunner_pylint'),
+        get_string('jobe_host_desc', 'local_coderunner_pylint'),
         '',
         PARAM_TEXT
     ));
@@ -102,14 +93,6 @@ if ($hassiteconfig) {
         PARAM_INT
     ));
 
-    // Pylintrc path.
-    $settings->add(new admin_setting_configtext(
-        'local_coderunner_pylint/pylintrc_path',
-        get_string('pylintrc_path', 'local_coderunner_pylint'),
-        get_string('pylintrc_path_desc', 'local_coderunner_pylint'),
-        '',
-        PARAM_TEXT
-    ));
 
     $ADMIN->add('localplugins', $settings);
 }

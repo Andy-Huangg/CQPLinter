@@ -17,30 +17,30 @@
 namespace local_coderunner_pylint;
 
 /**
- * Unit tests for the pylint_runner class.
+ * Unit tests for the jobe_runner class.
  *
- * These tests require Python 3 and pylint to be available on the test server.
- * They will be skipped if pylint is not installed.
+ * These tests require a Jobe server with pylint installed to be reachable.
+ * They will be skipped if Jobe is not configured or pylint is not available.
  *
  * @package    local_coderunner_pylint
  * @copyright  2026 Your Name
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_coderunner_pylint\pylint_runner
+ * @covers     \local_coderunner_pylint\jobe_runner
  */
 class pylint_runner_test extends \advanced_testcase {
 
-    /** @var pylint_runner */
-    private pylint_runner $runner;
+    /** @var jobe_runner */
+    private jobe_runner $runner;
 
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
 
-        $this->runner = new pylint_runner();
+        $this->runner = new jobe_runner();
         $status = $this->runner->check_availability();
 
         if (!$status['available']) {
-            $this->markTestSkipped('Pylint is not available: ' . $status['error']);
+            $this->markTestSkipped('Pylint via Jobe is not available: ' . $status['error']);
         }
     }
 
@@ -66,7 +66,6 @@ class pylint_runner_test extends \advanced_testcase {
         $this->assertTrue($result->is_valid());
         $this->assertNotEmpty($result->messages);
 
-        // Should have at least one message.
         $types = array_column(
             array_map(function($m) { return $m->to_array(); }, $result->messages),
             'type'
@@ -82,7 +81,6 @@ class pylint_runner_test extends \advanced_testcase {
         $result = $this->runner->lint($code);
 
         $this->assertTrue($result->is_valid());
-        // Should have at least a missing-module-docstring convention message.
         $conventions = $result->get_by_type('convention');
         $this->assertNotEmpty($conventions);
     }
@@ -91,10 +89,7 @@ class pylint_runner_test extends \advanced_testcase {
      * Test linting empty code.
      */
     public function test_lint_empty_code(): void {
-        $code = '';
-        // Empty code should be handled gracefully (rejected by security check).
-        $result = $this->runner->lint($code);
-        // Either returns a valid result or handles empty code.
+        $result = $this->runner->lint('');
         $this->assertInstanceOf(pylint_result::class, $result);
     }
 
@@ -116,11 +111,9 @@ class pylint_runner_test extends \advanced_testcase {
     public function test_lint_with_disable_option(): void {
         $code = "x = 1\nprint(x)\n";
 
-        // Lint with all conventions disabled.
         $result = $this->runner->lint($code, ['disable' => 'C']);
 
         $this->assertTrue($result->is_valid());
-        // Should not have any convention messages.
         $conventions = $result->get_by_type('convention');
         $this->assertEmpty($conventions);
     }
@@ -132,7 +125,6 @@ class pylint_runner_test extends \advanced_testcase {
         $code = "x = 1\nprint(x)\n";
         $result = $this->runner->lint($code);
 
-        // Serialise and deserialise.
         $json = $result->to_json();
         $restored = pylint_result::from_json($json);
 
@@ -140,7 +132,6 @@ class pylint_runner_test extends \advanced_testcase {
         $this->assertEquals($result->score, $restored->score);
         $this->assertEquals($result->returncode, $restored->returncode);
 
-        // Check messages match.
         for ($i = 0; $i < count($result->messages); $i++) {
             $this->assertEquals($result->messages[$i]->type, $restored->messages[$i]->type);
             $this->assertEquals($result->messages[$i]->symbol, $restored->messages[$i]->symbol);

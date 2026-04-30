@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * CLI script to verify pylint installation and configuration.
+ * CLI script to verify Jobe connectivity and pylint availability.
  *
  * Usage: php check_pylint.php
  *
@@ -32,53 +32,31 @@ require_once($CFG->libdir . '/clilib.php');
 echo "CodeRunner Pylint - Installation Check\n";
 echo "=======================================\n\n";
 
-$runner = new \local_coderunner_pylint\pylint_runner();
+$runner = new \local_coderunner_pylint\jobe_runner();
 $status = $runner->check_availability();
 
 if ($status['available']) {
-    echo "[OK] Pylint is available.\n";
-    echo "  Version: {$status['version']}\n\n";
+    echo "[OK] Jobe is reachable and pylint is available.\n";
+    echo "  Pylint version: {$status['version']}\n\n";
 } else {
-    echo "[FAIL] Pylint is NOT available.\n";
+    echo "[FAIL] Pylint is NOT available via Jobe.\n";
     echo "  Error: {$status['error']}\n\n";
 }
 
-// Check configuration.
+// Show configuration.
+$jobeoverride = get_config('local_coderunner_pylint', 'jobe_host') ?: '';
+$joberunner   = get_config('qtype_coderunner', 'jobe_host') ?: '(not configured)';
 echo "Configuration:\n";
-echo "  python_path:     " . (get_config('local_coderunner_pylint', 'python_path') ?: 'python3 (default)') . "\n";
-echo "  pylint_path:     " . (get_config('local_coderunner_pylint', 'pylint_path') ?: '(bundled)') . "\n";
-echo "  timeout:         " . (get_config('local_coderunner_pylint', 'timeout') ?: '10') . "s\n";
-echo "  max_code_size:   " . (get_config('local_coderunner_pylint', 'max_code_size') ?: '50000') . " bytes\n";
-echo "  default_disable: " . (get_config('local_coderunner_pylint', 'default_disable') ?: 'import-error') . "\n";
-echo "  min_severity:    " . (get_config('local_coderunner_pylint', 'min_severity') ?: 'convention') . "\n\n";
+echo "  Jobe host (plugin override): " . ($jobeoverride ?: '(none — inheriting from CodeRunner)') . "\n";
+echo "  Jobe host (CodeRunner):      " . $joberunner . "\n";
+echo "  timeout:                     " . (get_config('local_coderunner_pylint', 'timeout') ?: '10') . "s\n";
+echo "  max_code_size:               " . (get_config('local_coderunner_pylint', 'max_code_size') ?: '50000') . " bytes\n";
+echo "  default_disable:             " . (get_config('local_coderunner_pylint', 'default_disable') ?: 'import-error') . "\n";
+echo "  min_severity:                " . (get_config('local_coderunner_pylint', 'min_severity') ?: 'convention') . "\n\n";
 
-// Check vendor directory.
-$vendordir = __DIR__ . '/../vendor/python';
-if (is_dir($vendordir)) {
-    // Count files in vendor.
-    $count = 0;
-    $size = 0;
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($vendordir, RecursiveDirectoryIterator::SKIP_DOTS)
-    );
-    foreach ($iterator as $file) {
-        if ($file->isFile()) {
-            $count++;
-            $size += $file->getSize();
-        }
-    }
-    $sizemb = round($size / 1048576, 1);
-    echo "Vendor directory: {$vendordir}\n";
-    echo "  Files: {$count}\n";
-    echo "  Size: {$sizemb} MB\n\n";
-} else {
-    echo "Vendor directory: NOT FOUND at {$vendordir}\n";
-    echo "  Run 'php cli/update_vendor.php' to install bundled pylint.\n\n";
-}
-
-// Smoke test: run pylint on a trivial piece of code.
+// Smoke test.
 if ($status['available']) {
-    echo "Smoke test: linting trivial code...\n";
+    echo "Smoke test: linting trivial code via Jobe...\n";
     $testcode = "x = 1\nprint(x)\n";
     $result = $runner->lint($testcode);
 

@@ -188,8 +188,8 @@ class question_helper {
             return $cached;
         }
 
-        // Run pylint.
-        $runner = new pylint_runner();
+        // Run pylint via Jobe.
+        $runner = new jobe_runner();
         $result = $runner->lint($code, $config);
 
         // Cache the result.

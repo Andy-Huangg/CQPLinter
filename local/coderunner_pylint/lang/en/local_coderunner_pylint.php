@@ -28,10 +28,8 @@ $string['privacy:metadata'] = 'The CodeRunner Pylint plugin does not store any p
 // Admin settings.
 $string['settings_heading'] = 'CodeRunner Pylint Settings';
 $string['settings_heading_desc'] = 'Configure Python linting for CodeRunner questions. Pylint analyses student code for errors, warnings, and style issues.';
-$string['python_path'] = 'Python interpreter path';
-$string['python_path_desc'] = 'Path to the Python 3 interpreter. Use "python3" to rely on the system PATH, or specify an absolute path.';
-$string['pylint_path'] = 'Pylint binary path (optional)';
-$string['pylint_path_desc'] = 'Leave empty to use the bundled pylint. Set an absolute path to use a system-installed pylint instead.';
+$string['jobe_host'] = 'Jobe server host (optional override)';
+$string['jobe_host_desc'] = 'Leave empty to inherit the Jobe server URL from CodeRunner\'s settings. Set an explicit hostname (e.g. jobe.example.com) to use a different Jobe server for linting.';
 $string['timeout'] = 'Pylint timeout (seconds)';
 $string['timeout_desc'] = 'Maximum time in seconds for pylint to analyse a single submission. Increase for large code submissions.';
 $string['max_code_size'] = 'Maximum code size (bytes)';
