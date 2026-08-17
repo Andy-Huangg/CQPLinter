@@ -152,7 +152,9 @@ $string['ai_timeout_desc'] = 'Maximum time to wait for the API response before g
 $string['ai_max_code_size'] = 'Maximum code size for AI (bytes)';
 $string['ai_max_code_size_desc'] = 'Submissions larger than this are not sent to the AI (to bound token cost).';
 $string['ai_temperature'] = 'Temperature';
-$string['ai_temperature_desc'] = 'Sampling temperature 0.0–1.0. Lower is more consistent/conservative. Default 0.2.';
+$string['ai_temperature_desc'] = 'Sampling temperature 0.0-1.0. Lower is more consistent/conservative. Default 0.2. ' .
+    'Reasoning-class Azure deployments (e.g. GPT-5-class, o-series models) only accept the default value and will ' .
+    'reject requests at any other temperature. Set this to 1 if you are using one of those models.';
 
 // AI analysis — per-question and UI.
 $string['manage_ai_enabled'] = '(experimental) Enable AI analysis';
